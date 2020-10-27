@@ -19,7 +19,7 @@ CDARTS 在搜索和评估网络之间构建了循环反馈机制。 首先，搜
 
 ## 示例
 
-[示例代码](https://github.com/microsoft/nni/tree/master/examples/nas/cdarts)
+[示例代码](https://github.com/microsoft/nni/tree/v1.9/examples/nas/cdarts)
 
 ```bash
 ＃如果未克隆 NNI 代码。 如果代码已被克隆，请忽略此行并直接进入代码目录。
