@@ -1,0 +1,85 @@
+entrypoint: main
+arguments:
+    parameters:
+    - name: source
+      value: https://github.com/onepanelio/nni.git
+    - name: epochs
+      value: 1
+    - name: search-method
+      value: macro
+      type: select.select
+      options:
+      - name: 'Macro'
+        value: macro
+      - name: 'Micro'
+        value: micro
+    - displayName: Node pool
+      hint: Name of node pool or group to run this workflow task
+      type: select.select
+      visibility: public
+      name: sys-node-pool
+      value: Standard_D4s_v3
+      required: true
+      options:
+      - name: 'CPU: 2, RAM: 8GB'
+        value: Standard_D2s_v3
+      - name: 'CPU: 4, RAM: 16GB'
+        value: Standard_D4s_v3
+      - name: 'GPU: 1xK80, CPU: 6, RAM: 56GB'
+        value: Standard_NC6
+      - name: 'GPU: 1xV100, CPU: 6, RAM: 56GB'
+        value: Standard_NC6s_v3
+    
+volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
+  - metadata:
+      name: output
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
+templates:
+  - name: main
+    dag:
+      tasks:
+      - name: train-model
+        template: pytorch
+  - name: pytorch
+    inputs:
+      artifacts:
+      - name: src
+        path: /mnt/src
+        git:
+          repo: "{{workflow.parameters.source}}"
+          revision: "dev"
+    outputs:
+      artifacts:
+      - name: model
+        path: /mnt/output
+        optional: true
+        archive:
+          none: {}
+    container:
+      image: pytorch/pytorch:latest
+      command: [sh,-c]
+      args:
+      - |
+        apt-get update && \
+        apt-get install -y gcc g++ && \
+        pip install setuptools nni && \
+        python /mnt/src/examples/nas/enas/search.py --search-for {{workflow.parameters.search-method}} --epochs {{workflow.parameters.epochs}}
+      workingDir: /mnt
+      volumeMounts:
+      - name: data
+        mountPath: /mnt/data
+      - name: output
+        mountPath: /mnt/output
+    nodeSelector:
+      beta.kubernetes.io/instance-type: '{{workflow.parameters.sys-node-pool}}'
