@@ -92,7 +92,7 @@ class Trainer(BaseTrainer):
         self.batch_size = batch_size
         self.workers = workers
         self.log_frequency = log_frequency
-        self.log_dir = os.path.join("logs", str(time.time()))
+        self.log_dir = os.path.join("/mnt/output", str(time.time()))
         os.makedirs(self.log_dir, exist_ok=True)
         self.status_writer = open(os.path.join(self.log_dir, "log"), "w")
         self.callbacks = callbacks if callbacks is not None else []

@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument("--log-frequency", default=10, type=int)
     parser.add_argument("--search-for", choices=["macro", "micro"], default="macro")
     parser.add_argument("--epochs", default=None, type=int, help="Number of epochs (default: macro 310, micro 150)")
-    parser.add_argument("--visualization", default=False, action="store_true")
+    parser.add_argument("--visualization", default=True, action="store_true")
     args = parser.parse_args()
 
     dataset_train, dataset_valid = datasets.get_dataset("cifar10")
@@ -49,7 +49,7 @@ if __name__ == "__main__":
                                metrics=accuracy,
                                reward_function=reward_accuracy,
                                optimizer=optimizer,
-                               callbacks=[LRSchedulerCallback(lr_scheduler), ArchitectureCheckpoint("/mnt/output"), ModelCheckpoint("/mnt/output")],
+                               callbacks=[LRSchedulerCallback(lr_scheduler), ArchitectureCheckpoint("./output"), ModelCheckpoint("./output")],
                                batch_size=args.batch_size,
                                num_epochs=num_epochs,
                                dataset_train=dataset_train,
