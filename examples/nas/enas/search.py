@@ -11,7 +11,7 @@ import torch.nn as nn
 import datasets
 from macro import GeneralNetwork
 from micro import MicroNetwork
-from nni.nas.pytorch import enas
+from nni.algorithms.nas.pytorch import enas
 from nni.nas.pytorch.callbacks import (ArchitectureCheckpoint, ModelCheckpoint,
                                        LRSchedulerCallback)
 from utils import accuracy, reward_accuracy
@@ -49,7 +49,7 @@ if __name__ == "__main__":
                                metrics=accuracy,
                                reward_function=reward_accuracy,
                                optimizer=optimizer,
-                               callbacks=[LRSchedulerCallback(lr_scheduler), ArchitectureCheckpoint("./output"), ModelCheckpoint("./output")],
+                               callbacks=[LRSchedulerCallback(lr_scheduler), ArchitectureCheckpoint("/mnt/output"), ModelCheckpoint("/mnt/output")],
                                batch_size=args.batch_size,
                                num_epochs=num_epochs,
                                dataset_train=dataset_train,
