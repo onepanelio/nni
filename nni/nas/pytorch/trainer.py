@@ -92,7 +92,6 @@ class Trainer(BaseTrainer):
         self.batch_size = batch_size
         self.workers = workers
         self.log_frequency = log_frequency
-        print("Log dir...")
         self.log_dir = os.path.join("/mnt/output", str(time.time()))
         os.makedirs(self.log_dir, exist_ok=True)
         self.status_writer = open(os.path.join(self.log_dir, "log"), "w")
@@ -180,12 +179,12 @@ class Trainer(BaseTrainer):
         Enable visualization. Write graph and training log to folder ``logs/<timestamp>``.
         """
         sample = None
+        # print(len(self.train_loader))
         for x, _ in self.train_loader:
             sample = x.to(self.device)[:2]
             break
         if sample is None:
             _logger.warning("Sample is %s.", sample)
-        _logger.info("Visualization: %s",self.log_dir)
         _logger.info("Creating graph json, writing to %s. Visualization enabled.", self.log_dir)
         with open(os.path.join(self.log_dir, "graph.json"), "w") as f:
             json.dump(self.mutator.graph(sample), f)

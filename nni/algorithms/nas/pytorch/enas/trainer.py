@@ -100,6 +100,7 @@ class EnasTrainer(Trainer):
         indices = list(range(n_train))
         train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:-split])
         valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[-split:])
+        print("Loading dataset of size", n_train)
         self.train_loader = torch.utils.data.DataLoader(self.dataset_train,
                                                         batch_size=self.batch_size,
                                                         sampler=train_sampler,
