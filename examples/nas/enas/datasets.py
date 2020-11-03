@@ -11,8 +11,8 @@ def get_custom_dataset(train_dir, valid_dir):
 
     """
     transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Resize((32, 32))
+        transforms.Resize((32, 32)),
+        transforms.ToTensor()
     ])
     train_dataset = ImageFolder(root=train_dir, transform=transform)
     valid_dataset = ImageFolder(root=valid_dir, transform=transform)
