@@ -33,7 +33,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     dataset_train, dataset_valid = datasets.get_dataset(args.dataset, train_dir=args.train_data_dir, valid_data=args.valid_data_dir)
-    print(len(dataset_train))
     if args.search_for == "macro":
         model = GeneralNetwork(num_classes=args.num_classes)
         num_epochs = args.epochs or 310
