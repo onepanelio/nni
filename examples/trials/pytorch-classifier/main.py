@@ -40,7 +40,17 @@ def build_model(model_type, num_classes):
 	elif model_type == "resnet50":
 		model = models.resnet50(pretrained=True)
 		in_features = 2048
-	model.fc = nn.Sequential(nn.Linear(in_features, num_classes),
+    elif model_type == "alexnet":
+        model = models.alexnet(pretrained=True)
+        in_features = 4096
+    elif model_type == "vgg19":
+        model = models.alexnet(pretrained=True)
+        in_features = 4096
+    if model_type in ['alexnet', 'vgg19']:
+        model.classifier._modules['6'] = nn.Sequential(nn.Linear(in_features, num_classes),
+                                        nn.LogSoftmax(dim=1))
+    else:
+	    model.fc = nn.Sequential(nn.Linear(in_features, num_classes),
                                  nn.LogSoftmax(dim=1))
 	return model
 
