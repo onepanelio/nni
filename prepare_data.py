@@ -13,13 +13,16 @@ def main(args):
     for label in root.iter('label'):
         os.makedirs(os.path.join(args.data_dir, 'train', label.find('name').text))
         os.makedirs(os.path.join(args.data_dir, 'test', label.find('name').text))
-
+    images_len = len(list(root.iter('tag')))
+    test_len = (images_len * args.test_split )// 100
+    count = 0
     for img in root.iter('image'):
         #move image
         lbl = img.find('tag').attrib['label']
         if lbl:
-            if random.randrange(100) < args.test_split:
+            if bool(random.getrandbits(1)) and count <= test_len :
                 shutil.move(os.path.join(args.image_dir, img.attrib['name']), os.path.join(args.data_dir, 'test', lbl, img.attrib['name']))
+                count += 1
             else:
                 shutil.move(os.path.join(args.image_dir, img.attrib['name']), os.path.join(args.data_dir, 'train', lbl, img.attrib['name']))
 
