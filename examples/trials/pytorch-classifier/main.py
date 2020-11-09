@@ -34,12 +34,12 @@ logger = logging.getLogger('pytorch_classifier')
 
 
 def build_model(model_type, num_classes):
-	if model_type == "googlenet":
-		model = models.googlenet(pretrained=True)
-		in_features = 1024
-	elif model_type == "resnet50":
-		model = models.resnet50(pretrained=True)
-		in_features = 2048
+    if model_type == "googlenet":
+        model = models.googlenet(pretrained=True)
+        in_features = 1024
+    elif model_type == "resnet50":
+        model = models.resnet50(pretrained=True)
+        in_features = 2048
     elif model_type == "alexnet":
         model = models.alexnet(pretrained=True)
         in_features = 4096

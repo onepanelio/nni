@@ -157,7 +157,7 @@ def get_params():
 
 if __name__ == '__main__':
     try:
-        params = get_params()
+        params = vars(get_params())
         print("Current Parameters:\n")
         print(params)
         train(params)
