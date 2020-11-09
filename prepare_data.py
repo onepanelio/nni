@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import os
+import shutil
 import argparse
 
 def main(args):
@@ -15,7 +16,7 @@ def main(args):
         #move image
         lbl = img.find('tag').attrib['label']
         if lbl:
-            os.rename(os.path.join(args.image_dir, img.attrib['name']), os.path.join(args.data_dir, lbl, img.attrib['name']))
+            shutil.move(os.path.join(args.image_dir, img.attrib['name']), os.path.join(args.data_dir, lbl, img.attrib['name']))
 
 
 if __name__ == '__main__':
