@@ -50,9 +50,9 @@ def build_model(model_type, num_classes):
         model.classifier._modules['6'] = nn.Sequential(nn.Linear(in_features, num_classes),
                                         nn.LogSoftmax(dim=1))
     else:
-	    model.fc = nn.Sequential(nn.Linear(in_features, num_classes),
+        model.fc = nn.Sequential(nn.Linear(in_features, num_classes),
                                  nn.LogSoftmax(dim=1))
-	return model
+    return model
 
 
 def train_one_epoch(args, model, device, train_loader, optimizer, epoch):
@@ -105,8 +105,8 @@ def train(args):
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     train_loader = torch.utils.data.DataLoader(
-       		ImageFolder(root=args['train_dir'], transform=transforms.Compose([
-            	transforms.ToTensor(),
+            ImageFolder(root=args['train_dir'], transform=transforms.Compose([
+            transforms.ToTensor(),
               # add Normlize with mean and std
         ])),
         batch_size=args['batch_size'], shuffle=True, **kwargs)

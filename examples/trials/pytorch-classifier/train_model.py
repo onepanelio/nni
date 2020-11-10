@@ -32,15 +32,25 @@ logger = logging.getLogger('pytorch_classifier')
 
 
 def build_model(model_type, num_classes):
-	if model_type == "googlenet":
-		model = models.googlenet(pretrained=True)
-		in_features = 1024
-	elif model_type == "resnet50":
-		model = models.resnet50(pretrained=True)
-		in_features = 2048
-	model.fc = nn.Sequential(nn.Linear(in_features, num_classes),
+    if model_type == "googlenet":
+        model = models.googlenet(pretrained=True)
+        in_features = 1024
+    elif model_type == "resnet50":
+        model = models.resnet50(pretrained=True)
+        in_features = 2048
+    elif model_type == "alexnet":
+        model = models.alexnet(pretrained=True)
+        in_features = 4096
+    elif model_type == "vgg19":
+        model = models.alexnet(pretrained=True)
+        in_features = 4096
+    if model_type in ['alexnet', 'vgg19']:
+        model.classifier._modules['6'] = nn.Sequential(nn.Linear(in_features, num_classes),
+                                        nn.LogSoftmax(dim=1))
+    else:
+        model.fc = nn.Sequential(nn.Linear(in_features, num_classes),
                                  nn.LogSoftmax(dim=1))
-	return model
+    return model
 
 
 def train_one_epoch(args, model, device, train_loader, optimizer, epoch):
@@ -92,14 +102,14 @@ def train(args):
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     train_loader = torch.utils.data.DataLoader(
-       		ImageFolder(root=args['train_dir'], transform=transforms.Compose([
-            	transforms.ToTensor(),
+            ImageFolder(root=args['train_dir'], transform=transforms.Compose([
+                transforms.ToTensor(),
               # add Normlize with mean and std
         ])),
         batch_size=args['batch_size'], shuffle=True, **kwargs)
     test_loader = torch.utils.data.DataLoader(
             ImageFolder(root=args['test_dir'], transform=transforms.Compose([
-            	transforms.ToTensor(),
+                transforms.ToTensor(),
               # add Normlize with mean and std
         ])),
         batch_size=args['batch_size'], shuffle=True, **kwargs)
