@@ -159,7 +159,7 @@ templates:
             - name: hyperop-metrics
               from: "{{tasks.hyperparameter-tuning.outputs.artifacts.sys-metrics}}"
             - name: singlemodel-metrics
-              from: "{{tasks.model-param.outputs.artifacts.sys-metrics}}"
+              from: "{{tasks.train-model.outputs.artifacts.sys-metrics}}"
   - name: pytorch
     inputs:
       artifacts:
@@ -277,11 +277,11 @@ templates:
         s3:
           key: '{{workflow.namespace}}/{{workflow.parameters.cvat-annotation-path}}'
       - name: nas-metrics
-        value: /tmp/nas-metrics.json
+        path: /tmp/nas-metrics.json
       - name: hyperop-metrics
-        value: /tmp/hyperop-metrics.json
+        path: /tmp/hyperop-metrics.json
       - name: singlemodel-metrics
-        value: /tmp/singlemodel-metrics.json
+        path: /tmp/singlemodel-metrics.json
     outputs:
       artifacts:
       - name: model
