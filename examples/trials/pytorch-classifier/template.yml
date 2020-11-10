@@ -276,6 +276,12 @@ templates:
         path: /mnt/data/datasets/
         s3:
           key: '{{workflow.namespace}}/{{workflow.parameters.cvat-annotation-path}}'
+      - name: nas-metrics
+        value: /tmp/nas-metrics.json
+      - name: hyperop-metrics
+        value: /tmp/hyperop-metrics.json
+      - name: singlemodel-metrics
+        value: /tmp/singlemodel-metrics.json
     outputs:
       artifacts:
       - name: model
