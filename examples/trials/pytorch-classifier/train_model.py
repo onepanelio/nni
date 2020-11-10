@@ -4,8 +4,9 @@ A general purpose classification script using PyTorch.
 
 import argparse
 import logging
-import nni
+import json
 import torch
+import os
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -90,7 +91,7 @@ def test(args, model, device, test_loader):
     logger.info('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset), accuracy))
 
-    return accuracy
+    return accuracy, test_loss
 
 
 def train(args):
@@ -118,20 +119,20 @@ def train(args):
     model = build_model(args['model_type'], args['num_classes']).to(device)
     optimizer = optim.SGD(model.parameters(), lr=args['lr'],
                           momentum=args['momentum'])
+    
+    if not os.path.exists('/mnt/output/fixed-params'):
+        os.makedirs('/mnt/output/fixed-params')
 
     for epoch in range(1, args['epochs'] + 1):
         train_one_epoch(args, model, device, train_loader, optimizer, epoch)
-        test_acc = test(args, model, device, test_loader)
-
+        test_acc, test_loss = test(args, model, device, test_loader)
+        torch.save(model, '/mnt/output/fixed-params/fixed-params-model-epochs-{}-acc-{}'.format(epoch, round(test_acc, 2)))
         # report intermediate result
-        nni.report_intermediate_result(test_acc)
-        logger.debug('test accuracy %g', test_acc)
-        logger.debug('Pipe send intermediate result done.')
+        print('test accuracy: {} test loss: {}'.format(test_acc, test_loss))
 
     # report final result
-    nni.report_final_result(test_acc)
-    logger.debug('Final result is %g', test_acc)
-    logger.debug('Send final result done.')
+    print('Final result is ', test_acc)
+    return test_acc, test_loss
 
 
 def get_params():
@@ -142,7 +143,7 @@ def get_params():
     parser.add_argument("--test_dir", type=str,
                         default='/home/savan/Documents/test_data', help="test data directory")
     parser.add_argument("--model_type", type=str,
-                        default='googlenet', help="model to train")
+                        default='alexnet', help="model to train")
     parser.add_argument('--batch_size', type=int, default=1, metavar='N',
                         help='input batch size for training (default: 64)')
     parser.add_argument("--batch_num", type=int, default=None)
@@ -170,7 +171,15 @@ if __name__ == '__main__':
         params = vars(get_params())
         print("Current Parameters:\n")
         print(params)
-        train(params)
+        acc, loss = train(params)
+        metrics = [
+          {'name': 'accuracy', 'value': acc},
+          {'name': 'loss', 'value': loss},
+        ]
+        
+        # Write metrics to `/tmp/sys-metrics.json`
+        with open('/tmp/sys-metrics.json', 'w') as f:
+            json.dump(metrics, f)
     except Exception as exception:
         logger.exception(exception)
         raise

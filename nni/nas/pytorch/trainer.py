@@ -144,7 +144,7 @@ class Trainer(BaseTrainer):
             if validate:
                 # validation
                 _logger.info("Epoch %d Validating", epoch + 1)
-                self.validate_one_epoch(epoch)
+                self.val_model_summary = self.validate_one_epoch(epoch)
 
             for callback in self.callbacks:
                 callback.on_epoch_end(epoch)

@@ -2,9 +2,8 @@
 # Licensed under the MIT license.
 
 import logging
-import time
 from argparse import ArgumentParser
-
+import json
 import torch
 import torch.nn as nn
 
@@ -63,3 +62,6 @@ if __name__ == "__main__":
     if args.visualization:
         trainer.enable_visualization()
     trainer.train()
+    metrics = [{'name':'accuracy', 'value':trainer.val_model_summary['acc1'].avg}, {'name':'loss', 'value':trainer.val_model_summary['loss'].avg}]
+    with open('/tmp/sys-metrics.json', 'w') as f:
+        json.dump(metrics, f)

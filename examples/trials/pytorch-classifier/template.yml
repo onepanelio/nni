@@ -30,7 +30,7 @@ arguments:
     - name: model-type
       displayName: Model type
       visibility: public
-      value: googlenet
+      value: alexnet
       options:
       - name: 'GoogleNet'
         value: 'googlenet'
@@ -152,6 +152,14 @@ templates:
       - name: compare-models
         template: compare-models
         dependencies: [neural-architecture-search, hyperparameter-tuning, train-model]
+        arguments:
+          artifacts:
+            - name: nas-metrics
+              from: "{{tasks.neural-architecture-search.outputs.artifacts.sys-metrics}}" 
+            - name: hyperop-metrics
+              from: "{{tasks.hyperparameter-tuning.outputs.artifacts.sys-metrics}}"
+            - name: singlemodel-metrics
+              from: "{{tasks.model-param.outputs.artifacts.sys-metrics}}"
   - name: pytorch
     inputs:
       artifacts:
@@ -249,7 +257,7 @@ templates:
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 setup.py install && \
-        python3 examples/trials/pytorch-classifier/train_main.py --model_type={{workflow.parameters.model-type}} --epochs {{workflow.parameters.epochs}} --num_classes {{workflow.parameters.num-classes}} \
+        python3 examples/trials/pytorch-classifier/train_model.py --model_type={{workflow.parameters.model-type}} --epochs {{workflow.parameters.epochs}} --num_classes {{workflow.parameters.num-classes}} \
                  --train_dir /mnt/data/datasets/processed_data --test_dir /mnt/data/datasets/processed_data --lr {{workflow.parameters.learning-rate}} --momentum {{workflow.parameters.momentum}} --batch_size {{workflow.parameters.batch-size}}
       workingDir: /mnt
       volumeMounts:

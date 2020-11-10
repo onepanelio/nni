@@ -208,3 +208,4 @@ class EnasTrainer(Trainer):
                 logger.info("Test Epoch [%d/%d] Arc [%d/%d] Summary  %s",
                             epoch + 1, self.num_epochs, arc_id + 1, self.test_arc_per_epoch,
                             meters.summary())
+        return meters

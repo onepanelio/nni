@@ -93,7 +93,7 @@ def test(args, model, device, test_loader):
     logger.info('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset), accuracy))
 
-    return accuracy
+    return accuracy, test_loss
 
 
 def train(args):
@@ -124,7 +124,7 @@ def train(args):
 
     for epoch in range(1, args['epochs'] + 1):
         train_one_epoch(args, model, device, train_loader, optimizer, epoch)
-        test_acc = test(args, model, device, test_loader)
+        test_acc, test_loss = test(args, model, device, test_loader)
 
         # report intermediate result
         nni.report_intermediate_result(test_acc)
@@ -133,7 +133,8 @@ def train(args):
 
     # report final result
     nni.report_final_result(test_acc)
-    logger.debug('Final result is %g', test_acc)
+    print(test_acc, test_loss)
+    logger.debug('Final result is %g and loss is %g', test_acc, test_loss)
     logger.debug('Send final result done.')
 
 
@@ -145,7 +146,7 @@ def get_params():
     parser.add_argument("--test_dir", type=str,
                         default='/home/savan/Documents/test_data', help="test data directory")
     parser.add_argument("--model_type", type=str,
-                        default='googlenet', help="model to train")
+                        default='alexnet', help="model to train")
     parser.add_argument('--batch_size', type=int, default=1, metavar='N',
                         help='input batch size for training (default: 64)')
     parser.add_argument("--batch_num", type=int, default=None)
