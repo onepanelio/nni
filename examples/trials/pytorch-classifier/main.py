@@ -147,9 +147,9 @@ def get_params():
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch Classification Example')
     parser.add_argument("--train_dir", type=str,
-                        default='/home/savan/Documents/train_data', help="train data directory")
+                        default='/mnt/data/datasets/processed_data/train', help="train data directory")
     parser.add_argument("--test_dir", type=str,
-                        default='/home/savan/Documents/test_data', help="test data directory")
+                        default='/mnt/data/datasets/processed_data/test', help="test data directory")
     parser.add_argument("--model_type", type=str,
                         default='alexnet', help="model to train")
     parser.add_argument('--batch_size', type=int, default=1, metavar='N',
