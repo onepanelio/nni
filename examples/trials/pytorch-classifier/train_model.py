@@ -172,6 +172,8 @@ if __name__ == '__main__':
         print("Current Parameters:\n")
         print(params)
         acc, loss = train(params)
+        if loss is None:
+            loss = 0
         metrics = [
           {'name': 'accuracy', 'value': acc},
           {'name': 'loss', 'value': loss},
