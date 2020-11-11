@@ -126,12 +126,17 @@ def train(args):
     model = build_model(args['model_type'], args['num_classes']).to(device)
     optimizer = optim.SGD(model.parameters(), lr=args['lr'],
                           momentum=args['momentum'])
+    
+    if not os.path.exists('/mnt/output/hyper-params'):
+        os.makedirs('/mnt/output/hyper-params')
 
     for epoch in range(1, args['epochs'] + 1):
         train_one_epoch(args, model, device, train_loader, optimizer, epoch)
         test_acc, test_loss = test(args, model, device, test_loader)
+        torch.save(model, '/mnt/output/hyper-params/hyper-params-model-epochs-{}-acc-{}'.format(epoch, round(test_acc, 2)))
 
         # report intermediate result
+        print('test accuracy: {} test loss: {}'.format(test_acc, test_loss))
         nni.report_intermediate_result(test_acc)
         logger.debug('test accuracy %g', test_acc)
         logger.debug('Pipe send intermediate result done.')

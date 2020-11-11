@@ -101,16 +101,21 @@ def train(args):
 
     device = torch.device("cuda" if use_cuda else "cpu")
 
+    if args['model_type'] == 'alexnet':
+        w, h = 256, 256
+    else:
+        w, h = 224, 224
+        
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     train_loader = torch.utils.data.DataLoader(
             ImageFolder(root=args['train_dir'], transform=transforms.Compose([
-                transforms.ToTensor(),
+                transforms.Resize((w, h)),transforms.ToTensor(),
               # add Normlize with mean and std
         ])),
         batch_size=args['batch_size'], shuffle=True, **kwargs)
     test_loader = torch.utils.data.DataLoader(
             ImageFolder(root=args['test_dir'], transform=transforms.Compose([
-                transforms.ToTensor(),
+                transforms.Resize((w, h)),transforms.ToTensor(),
               # add Normlize with mean and std
         ])),
         batch_size=args['batch_size'], shuffle=True, **kwargs)
