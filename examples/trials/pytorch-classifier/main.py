@@ -143,7 +143,8 @@ def train(args):
 
     # report final result
     nni.report_final_result(test_acc)
-    print(test_acc, test_loss)
+    best_params = nni.get_best_params()
+    print("Best param and score: ", best_params)
     logger.debug('Final result is %g and loss is %g', test_acc, test_loss)
     logger.debug('Send final result done.')
 

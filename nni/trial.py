@@ -22,6 +22,8 @@ _experiment_id = platform.get_experiment_id()
 _trial_id = platform.get_trial_id()
 _sequence_id = platform.get_sequence_id()
 
+#keep track of highest accuracy
+_best_score = {'params':None, 'score':0}
 
 def get_next_parameter():
     """
@@ -139,3 +141,14 @@ def report_final_result(metric):
         'value': to_json(metric)
     })
     platform.send_metric(metric)
+    update_score(metric)
+
+def update_score(score):
+    global _best_score
+    if score > _best_score['score']:
+        _best_score['score'] = score
+        _best_score['params'] = get_current_parameter()
+
+def get_best_params():
+    global _best_score
+    return _best_score
