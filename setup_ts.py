@@ -22,7 +22,7 @@ import tarfile
 from zipfile import ZipFile
 
 
-node_version = 'v10.22.1'
+node_version = 'v14.15.0'
 yarn_version = 'v1.22.10'
 
 
@@ -59,7 +59,7 @@ def clean(clean_all=False):
 if sys.platform == 'linux' or sys.platform == 'darwin':
     node_executable = 'node'
     node_spec = f'node-{node_version}-{sys.platform}-x64'
-    node_download_url = f'https://nodejs.org/dist/latest-v10.x/{node_spec}.tar.xz'
+    node_download_url = f'https://nodejs.org/dist/{node_version}/{node_spec}.tar.xz'
     node_extractor = lambda data: tarfile.open(fileobj=BytesIO(data), mode='r:xz')
     node_executable_in_tarball = 'bin/node'
 

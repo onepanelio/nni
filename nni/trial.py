@@ -133,6 +133,7 @@ def report_final_result(metric):
     """
     assert _params or trial_env_vars.NNI_PLATFORM is None, \
         'nni.get_next_parameter() needs to be called before report_final_result'
+    update_score(metric)
     metric = to_json({
         'parameter_id': _params['parameter_id'] if _params else None,
         'trial_job_id': trial_env_vars.NNI_TRIAL_JOB_ID,
@@ -141,7 +142,7 @@ def report_final_result(metric):
         'value': to_json(metric)
     })
     platform.send_metric(metric)
-    update_score(metric)
+    
 
 def update_score(score):
     global _best_score
@@ -151,4 +152,5 @@ def update_score(score):
 
 def get_best_params():
     global _best_score
+    print("Best Score", _best_score)
     return _best_score
