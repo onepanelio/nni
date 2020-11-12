@@ -14,7 +14,7 @@ from torchvision.datasets import ImageFolder
 import torchvision.models as models
 from torchvision import datasets, transforms
 from torch.utils.tensorboard import SummaryWriter
-writer = SummaryWriter("/mnt/output/fixed_param__tb")
+writer = SummaryWriter("/mnt/output/fixed_param_tb")
 logger = logging.getLogger('pytorch_classifier')
 
 
