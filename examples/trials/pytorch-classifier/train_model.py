@@ -13,7 +13,8 @@ import torch.optim as optim
 from torchvision.datasets import ImageFolder
 import torchvision.models as models
 from torchvision import datasets, transforms
-
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter("/mnt/output/fixed_param__tb")
 logger = logging.getLogger('pytorch_classifier')
 
 
@@ -63,6 +64,11 @@ def train_one_epoch(args, model, device, train_loader, optimizer, epoch):
         optimizer.zero_grad()
         output = model(data)
         loss = F.nll_loss(output, target)
+        pred = output.argmax(dim=1, keepdim=True)
+        correct += pred.eq(target.view_as(pred)).sum().item()
+        accuracy = 100. * correct / len(train_loader.dataset)
+        writer.add_scalar("Loss/train", loss, batch_idx + (epoch * 10))
+        writer.add_scalar("Accuracy/train", accuracy, batch_idx + (epoch * 10))
         loss.backward()
         optimizer.step()
         if batch_idx % args['log_interval'] == 0:
@@ -105,7 +111,7 @@ def train(args):
         w, h = 256, 256
     else:
         w, h = 224, 224
-        
+
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     train_loader = torch.utils.data.DataLoader(
             ImageFolder(root=args['train_dir'], transform=transforms.Compose([
@@ -131,6 +137,8 @@ def train(args):
     for epoch in range(1, args['epochs'] + 1):
         train_one_epoch(args, model, device, train_loader, optimizer, epoch)
         test_acc, test_loss = test(args, model, device, test_loader)
+        writer.add_scalar("Loss/test", test_loss, epoch )
+        writer.add_scalar("Accuracy/test", test_acc, epoch )
         torch.save(model, '/mnt/output/fixed-params/fixed-params-model-epochs-{}-acc-{}'.format(epoch, round(test_acc, 2)))
         # report intermediate result
         print('test accuracy: {} test loss: {}'.format(test_acc, test_loss))

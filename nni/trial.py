@@ -4,7 +4,7 @@
 from .utils import to_json
 from .runtime.env_vars import trial_env_vars
 from .runtime import platform
-
+import os, json
 
 __all__ = [
     'get_next_parameter',
@@ -13,7 +13,8 @@ __all__ = [
     'report_final_result',
     'get_experiment_id',
     'get_trial_id',
-    'get_sequence_id'
+    'get_sequence_id',
+    'get_best_params'
 ]
 
 
@@ -23,7 +24,8 @@ _trial_id = platform.get_trial_id()
 _sequence_id = platform.get_sequence_id()
 
 #keep track of highest accuracy
-_best_score = {'params':None, 'score':0}
+#_best_params = os.getenv('_BEST_PARAMS', None)
+#_best_score  = os.getenv('_BEST_SCORE', 0)
 
 def get_next_parameter():
     """
@@ -144,13 +146,30 @@ def report_final_result(metric):
     platform.send_metric(metric)
     
 
-def update_score(score):
-    global _best_score
-    if score > _best_score['score']:
-        _best_score['score'] = score
-        _best_score['params'] = get_current_parameter()
+def update_score(metric):
+  
+    #keep track of highest accuracy
+    _sysdir = trial_env_vars.NNI_SYS_DIR
+    _trials = os.path.dirname(_sysdir)
+    if os.path.exists(os.path.join(_trials, 'best_score.json')):
+        with open(os.path.join(_trials, 'best_score.json'), "r") as jsonFile:
+            data = json.load(jsonFile)
+        if float(data['score']) < metric:
+            data['score'] = str(metric)
+
+            with open(os.path.join(_trials, 'best_score.json'), "w") as jsonFile2:
+                print("updating json file", data)
+                json.dump(data, jsonFile2)
+    else:
+        params = get_current_parameter()
+        with open(os.path.join(_trials, 'best_score.json'),'w') as f:
+            json.dump({'score':metric, 'params':str(params) } , f)        
 
 def get_best_params():
-    global _best_score
-    print("Best Score", _best_score)
-    return _best_score
+    _sysdir = trial_env_vars.NNI_SYS_DIR
+    _trials = os.path.dirname(_sysdir)
+    if os.path.exists(os.path.join(_trials, 'best_score.json')):
+        with open(os.path.join(_trials, 'best_score.json'), "r") as jsonFile:
+            data = json.load(jsonFile)
+        return data
+    return None

@@ -6,6 +6,7 @@ import os
 import argparse
 import logging
 import nni
+import json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -145,6 +146,11 @@ def train(args):
     nni.report_final_result(test_acc)
     best_params = nni.get_best_params()
     print("Best param and score: ", best_params)
+    metrics = [
+        {'name': 'accuracy', 'value': best_params['score']},
+    ]
+    with open('/tmp/sys-metrics.json', 'w') as f:
+        json.dump(metrics, f)
     logger.debug('Final result is %g and loss is %g', test_acc, test_loss)
     logger.debug('Send final result done.')
 
