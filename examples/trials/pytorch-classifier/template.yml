@@ -181,7 +181,7 @@ templates:
       - |
         apt-get update && \
         apt-get install -y gcc g++ git && \
-        python3 -m pip install setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
+        python3 -m pip install urllib3==1.12 setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 setup.py install && \
@@ -195,6 +195,20 @@ templates:
         mountPath: /mnt/output
     nodeSelector:
       beta.kubernetes.io/instance-type: '{{workflow.parameters.sys-node-pool}}'
+    sidecars:
+      - name: nni-web-ui
+        image: 'tensorflow/tensorflow:2.3.0'
+        command:
+          - sh
+          - '-c'
+        tty: true
+        args:
+          - |
+            pip install nni && \
+            nnictl webui nas --logdir /mnt/output/naslogs --port 8888
+        ports:
+          - containerPort: 8888
+            name: nni
 
   - name: hyperop
     inputs:
@@ -217,12 +231,11 @@ templates:
       - |
         apt-get update && \
         apt-get install -y gcc g++ git && \
-        python3 -m pip install setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
+        python3 -m pip install urllib3==1.12 setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 setup.py install && \
-        python3 examples/trials/pytorch-classifier/main.py --model_type={{workflow.parameters.model-type}} --epochs {{workflow.parameters.epochs}} --num_classes {{workflow.parameters.num-classes}} \
-                 --train_dir /mnt/data/datasets/processed_data --test_dir /mnt/data/datasets/processed_data
+        nnictl create --config examples/trials/pytorch-classifier/config.yml
       workingDir: /mnt
       volumeMounts:
       - name: data2
@@ -253,7 +266,7 @@ templates:
       - |
         apt-get update && \
         apt-get install -y gcc g++ git && \
-        python3 -m pip install setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
+        python3 -m pip install urllib3==1.12 setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 setup.py install && \
@@ -267,7 +280,18 @@ templates:
         mountPath: /mnt/output
     nodeSelector:
       beta.kubernetes.io/instance-type: '{{workflow.parameters.sys-node-pool}}'
-    
+    sidecars:
+      - name: tensorboard
+        image: 'tensorflow/tensorflow:2.3.0'
+        command:
+          - sh
+          - '-c'
+        tty: true
+        args:
+          - tensorboard --logdir /mnt/output/fixed_param_tb
+        ports:
+          - containerPort: 6006
+            name: tensorboard
    
   - name: compare-models
     inputs:
@@ -333,7 +357,7 @@ templates:
       - |
         apt-get update && \
         apt-get install -y gcc g++ git && \
-        python3 -m pip install setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
+        python3 -m pip install setuptools && \
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 prepare_data.py --data_dir=/mnt/output/processed_data
