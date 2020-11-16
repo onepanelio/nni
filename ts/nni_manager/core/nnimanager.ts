@@ -588,6 +588,7 @@ class NNIManager implements Manager {
                         await this.storeExperimentProfile();
                         // write this log for travis CI
                         this.log.info('Experiment done.');
+                        return  process.exit(0);
                     }
                 }
             } else {
