@@ -14,6 +14,7 @@ from torchvision.datasets import ImageFolder
 import torchvision.models as models
 from torchvision import datasets, transforms
 from torch.utils.tensorboard import SummaryWriter
+import math
 writer = SummaryWriter("/mnt/output/fixed_param_tb")
 logger = logging.getLogger('pytorch_classifier')
 
@@ -185,7 +186,7 @@ if __name__ == '__main__':
         print("Current Parameters:\n")
         print(params)
         acc, loss = train(params)
-        if loss is None:
+        if loss is None or math.isnan(loss):
             loss = 0
         metrics = [
           {'name': 'accuracy', 'value': acc},
