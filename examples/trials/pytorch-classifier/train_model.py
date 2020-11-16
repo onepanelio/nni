@@ -1,7 +1,6 @@
 """
 A general purpose classification script using PyTorch.
 """
-
 import argparse
 import logging
 import json
