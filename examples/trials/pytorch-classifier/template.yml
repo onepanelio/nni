@@ -180,11 +180,12 @@ templates:
       args:
       - |
         apt-get update && \
-        apt-get install -y gcc g++ git && \
+        apt-get install -y gcc g++ git curl && \
         python3 -m pip install urllib3==1.12 setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 setup.py install && \
+        
         python3 examples/nas/enas/search.py --search-for {{workflow.parameters.search-method}} --epochs {{workflow.parameters.epochs}} --num-classes {{workflow.parameters.num-classes}} \
                 --dataset custom_classification --train-data-dir /mnt/data/datasets/processed_data --valid-data-dir /mnt/data/datasets/processed_data
       workingDir: /mnt
@@ -230,11 +231,15 @@ templates:
       args:
       - |
         apt-get update && \
-        apt-get install -y gcc g++ git && \
+        apt-get install -y gcc g++ git curl wget && \
         python3 -m pip install urllib3==1.12 setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
+        python3 -m pip install --upgrade requests
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
-        python3 setup.py install && \
+        curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
+        apt-get install -y nodejs && \
+        wget https://github.com/onepanelio/nni/releases/download/2.0.0a0/nni-2.1-py3-none-manylinux1_x86_64.whl && \
+        python3 -m pip install nni-2.1-py3-none-manylinux1_x86_64.whl && \ 
         nnictl create --config examples/trials/pytorch-classifier/config.yml
       workingDir: /mnt
       volumeMounts:
