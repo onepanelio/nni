@@ -118,23 +118,23 @@ def train(args):
                 transforms.Resize((w, h)),transforms.ToTensor(),
               # add Normlize with mean and std
         ])),
-        batch_size=args['batch_size'], shuffle=True, **kwargs)
+        batch_size=int(args['batch_size']), shuffle=True, **kwargs)
     test_loader = torch.utils.data.DataLoader(
             ImageFolder(root=args['test_dir'], transform=transforms.Compose([
                 transforms.Resize((w, h)),transforms.ToTensor(),
               # add Normlize with mean and std
         ])),
-        batch_size=args['batch_size'], shuffle=True, **kwargs)
+        batch_size=int(args['batch_size']), shuffle=True, **kwargs)
 
 
-    model = build_model(args['model_type'], args['num_classes']).to(device)
-    optimizer = optim.SGD(model.parameters(), lr=args['lr'],
-                          momentum=args['momentum'])
+    model = build_model(args['model_type'], int(args['num_classes'])).to(device)
+    optimizer = optim.SGD(model.parameters(), lr=float(args['lr']),
+                          momentum=float(args['momentum']))
     
     if not os.path.exists('/mnt/output/fixed-params'):
         os.makedirs('/mnt/output/fixed-params')
 
-    for epoch in range(1, args['epochs'] + 1):
+    for epoch in range(1, int(args['epochs']) + 1):
         train_one_epoch(args, model, device, train_loader, optimizer, epoch)
         test_acc, test_loss = test(args, model, device, test_loader)
         writer.add_scalar("Loss/test", test_loss, epoch )
@@ -155,26 +155,26 @@ def get_params():
                         default='/home/savan/Documents/train_data', help="train data directory")
     parser.add_argument("--test_dir", type=str,
                         default='/home/savan/Documents/test_data', help="test data directory")
-    parser.add_argument("--model_type", type=str,
-                        default='alexnet', help="model to train")
-    parser.add_argument('--batch_size', type=int, default=1, metavar='N',
-                        help='input batch size for training (default: 64)')
+#     parser.add_argument("--model_type", type=str,
+#                         default='alexnet', help="model to train")
+#     parser.add_argument('--batch_size', type=int, default=1, metavar='N',
+#                         help='input batch size for training (default: 64)')
     parser.add_argument("--batch_num", type=int, default=None)
-    parser.add_argument("--num_classes", type=int, default=2, metavar='N',
-                        help='number of classes in the dataset')
-    parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
-                        help='learning rate (default: 0.01)')
-    parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
-                        help='SGD momentum (default: 0.5)')
-    parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                        help='number of epochs to train (default: 10)')
+#     parser.add_argument("--num_classes", type=int, default=2, metavar='N',
+#                         help='number of classes in the dataset')
+#     parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
+#                         help='learning rate (default: 0.01)')
+#     parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
+#                         help='SGD momentum (default: 0.5)')
+#     parser.add_argument('--epochs', type=int, default=10, metavar='N',
+#                         help='number of epochs to train (default: 10)')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
                         help='random seed (default: 1)')
     parser.add_argument('--no_cuda', action='store_true', default=False,
                         help='disables CUDA training')
     parser.add_argument('--log_interval', type=int, default=1000, metavar='N',
                         help='how many batches to wait before logging training status')
-
+    parser.add_argument('--config', help="hyperparameters or other configs")
     args, _ = parser.parse_known_args()
     return args
 
@@ -182,9 +182,14 @@ def get_params():
 if __name__ == '__main__':
     try:
         params = vars(get_params())
+        extras = params['config'].split("\\n")
+        extras_processed = [i.split("#")[0].replace(" ","") for i in extras if i]
+        config = {i.split('=')[0]:i.split('=')[1] for i in extras_processed}
+        config.update(params)
+        config.pop('config')
         print("Current Parameters:\n")
-        print(params)
-        acc, loss = train(params)
+        print(config)
+        acc, loss = train(config)
         if loss is None or math.isnan(loss):
             loss = 0
         metrics = [
