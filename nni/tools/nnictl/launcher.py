@@ -528,6 +528,8 @@ def launch_experiment(args, experiment_config, mode, config_file_name, experimen
             while True:
                 log_content = rest_process.stdout.readline().strip().decode('utf-8')
                 print(log_content)
+                if 'Experiment done.' in log_content:
+                    sys.exit(0)
         except KeyboardInterrupt:
             kill_command(rest_process.pid)
             print_normal('Stopping experiment...')

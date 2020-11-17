@@ -46,6 +46,26 @@ arguments:
         value: macro
       - name: 'Micro'
         value: micro
+    - name: hyperparamtuning-config
+      value: |-
+        epochs=1
+      displayName: Settings for hyperparameter tuning
+      visibility: public
+      type: textarea.textarea
+    - name: nas-config
+      value: |-
+        epochs=1
+      displayName: Settings for Neural Architecture Search
+      visibility: public
+      type: textarea.textarea
+    - name: fixedparam-config
+      value: |-
+        epochs=1
+        momentum=0.5
+        lr=0.01
+      displayName: Settings for model training
+      visibility: public
+      type: textarea.textarea
     - displayName: Node pool
       hint: Name of node pool or group to run this workflow task
       type: select.select
@@ -175,17 +195,12 @@ templates:
         archive:
           none: {}
     container:
-      image: pytorch/pytorch:latest
+      image: onepanel/nas:0.0.1
       command: [sh,-c]
       args:
       - |
-        apt-get update && \
-        apt-get install -y gcc g++ git curl && \
-        python3 -m pip install urllib3==1.12 setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
-        python3 setup.py install && \
-        
         python3 examples/nas/enas/search.py --search-for {{workflow.parameters.search-method}} --epochs {{workflow.parameters.epochs}} --num-classes {{workflow.parameters.num-classes}} \
                 --dataset custom_classification --train-data-dir /mnt/data/datasets/processed_data --valid-data-dir /mnt/data/datasets/processed_data
       workingDir: /mnt
@@ -226,21 +241,13 @@ templates:
         archive:
           none: {}
     container:
-      image: pytorch/pytorch:latest
+      image: onepanel/nas:0.0.1
       command: [sh,-c]
       args:
       - |
-        apt-get update && \
-        apt-get install -y gcc g++ git curl wget && \
-        python3 -m pip install urllib3==1.12 setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
-        python3 -m pip install --upgrade requests
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
-        curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
-        apt-get install -y nodejs && \
-        wget https://github.com/onepanelio/nni/releases/download/2.0.0a0/nni-2.1-py3-none-manylinux1_x86_64.whl && \
-        python3 -m pip install nni-2.1-py3-none-manylinux1_x86_64.whl && \ 
-        nnictl create --config examples/trials/pytorch-classifier/config.yml
+        nnictl create --config examples/trials/pytorch-classifier/config.yml --port 8089 --foreground
       workingDir: /mnt
       volumeMounts:
       - name: data2
@@ -249,6 +256,13 @@ templates:
         mountPath: /mnt/output
     nodeSelector:
       beta.kubernetes.io/instance-type: '{{workflow.parameters.sys-node-pool}}'
+    sidecars:
+      - name: nni-web-ui
+        image: 'onepanel/nni-proxy:0.0.1'
+        tty: true
+        ports:
+          - containerPort: 8089
+            name: nni
     
   - name: model-param
     inputs:
@@ -265,16 +279,12 @@ templates:
         archive:
           none: {}
     container:
-      image: pytorch/pytorch:latest
+      image: onepanel/nas:0.0.1
       command: [sh,-c]
       args:
       - |
-        apt-get update && \
-        apt-get install -y gcc g++ git && \
-        python3 -m pip install urllib3==1.12 setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
-        python3 setup.py install && \
         python3 examples/trials/pytorch-classifier/train_model.py --model_type={{workflow.parameters.model-type}} --epochs {{workflow.parameters.epochs}} --num_classes {{workflow.parameters.num-classes}} \
                  --train_dir /mnt/data/datasets/processed_data --test_dir /mnt/data/datasets/processed_data --lr {{workflow.parameters.learning-rate}} --momentum {{workflow.parameters.momentum}} --batch_size {{workflow.parameters.batch-size}}
       workingDir: /mnt
@@ -319,19 +329,13 @@ templates:
         archive:
           none: {}
     container:
-      image: pytorch/pytorch:latest
+      image: onepanel/nas:0.0.1
       command: [sh,-c]
       args:
       - |
-        apt-get update && \
-        apt-get install -y gcc g++ git && \
-        python3 -m pip install setuptools torch==1.4.0 torchvision==0.5.0 tensorboard && \
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
-        python3 setup.py install && \
-        python3 prepare_data.py && \
-        python3 examples/trials/pytorch-classifier/train_main.py --model_type={{workflow.parameters.model-type}} --epochs {{workflow.parameters.epochs}} --num_classes {{workflow.parameters.num-classes}} \
-                 --train_dir /mnt/data/datasets/processed_data --test_dir /mnt/data/datasets/processed_data --lr {{workflow.parameters.learning-rate}} --momentum {{workflow.parameters.momentum}} --batch_size {{workflow.parameters.batch-size}}
+        python3 compare.py
       workingDir: /mnt
       volumeMounts:
       - name: data4
