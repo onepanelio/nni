@@ -160,8 +160,8 @@ def get_params():
 #     parser.add_argument('--batch_size', type=int, default=1, metavar='N',
 #                         help='input batch size for training (default: 64)')
     parser.add_argument("--batch_num", type=int, default=None)
-#     parser.add_argument("--num_classes", type=int, default=2, metavar='N',
-#                         help='number of classes in the dataset')
+    parser.add_argument("--num_classes", type=int, default=2, metavar='N',
+                        help='number of classes in the dataset')
 #     parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
 #                         help='learning rate (default: 0.01)')
 #     parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
@@ -182,7 +182,7 @@ def get_params():
 if __name__ == '__main__':
     try:
         params = vars(get_params())
-        extras = params['config'].split("\\n")
+        extras = params['config'].split("\n")
         extras_processed = [i.split("#")[0].replace(" ","") for i in extras if i]
         config = {i.split('=')[0]:i.split('=')[1] for i in extras_processed}
         config.update(params)

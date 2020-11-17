@@ -165,7 +165,7 @@ def get_params():
     parser.add_argument("--model_type", type=str,
                         default='alexnet', help="model to train")
     parser.add_argument('--batch_size', type=int, default=1, metavar='N',
-                        help='input batch size for training (default: 64)')
+                        help='input batch size for training (default: 1)')
     parser.add_argument("--batch_num", type=int, default=None)
     parser.add_argument("--num_classes", type=int, default=2, metavar='N',
                         help='number of classes in the dataset')
