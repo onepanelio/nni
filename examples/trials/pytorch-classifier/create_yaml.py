@@ -28,9 +28,11 @@ if __name__ == "__main__":
                         help="number of classes in the dataset")
     parser.add_argument("--config", default="batch_size_list=16,32,64,128\nlr_list=0.001,0.001\nmomentum_range=0,1\nepochs=10")
     args = parser.parse_args()
+    print("Arguments: ", args)
     extras = args.config.split("\n")
     extras_processed = [i.split("#")[0].replace(" ","") for i in extras if i]
     config = {i.split('=')[0]:i.split('=')[1] for i in extras_processed}
+    print("[Create YAML] Config: ", config)
     config.update(vars(args))
-    print(config)
+    print("Final Arguments: ", config)
     main(config)

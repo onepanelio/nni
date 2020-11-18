@@ -20,25 +20,34 @@ logger = logging.getLogger('nni')
 
 if __name__ == "__main__":
     parser = ArgumentParser("enas")
-    parser.add_argument("--batch-size", default=128, type=int)
+    # parser.add_argument("--batch-size", default=128, type=int)
     parser.add_argument("--log-frequency", default=10, type=int)
     parser.add_argument("--num-classes", default=2, type=int)
     parser.add_argument("--dataset", default="cifar10", choices=["cifar10", "custom_classification"])
-    parser.add_argument("--search-for", choices=["macro", "micro"], default="macro")
-    parser.add_argument("--epochs", default=None, type=int, help="Number of epochs (default: macro 310, micro 150)")
+    # parser.add_argument("--search-for", choices=["macro", "micro"], default="macro")
+    # parser.add_argument("--epochs", default=None, type=int, help="Number of epochs (default: macro 310, micro 150)")
     parser.add_argument("--visualization", default=True, action="store_true")
     parser.add_argument("--train-data-dir", default="/home/savan/Documents/train_data", help="train dataset for classification")
     parser.add_argument("--valid-data-dir", default="/home/savan/Documents/test_data", help="validation dataset for classification")
+    parser.add_argument("--config", default="batch-size=128 \n search-for=macro \n epochs=30")
     args = parser.parse_args()
 
-    dataset_train, dataset_valid = datasets.get_dataset(args.dataset, train_dir=args.train_data_dir, valid_data=args.valid_data_dir)
-    if args.search_for == "macro":
-        model = GeneralNetwork(num_classes=args.num_classes)
-        num_epochs = args.epochs or 310
+    extras = args['config'].split("\n")
+    print("nas extras", extras)
+    extras_processed = [i.split("#")[0].replace(" ","") for i in extras if i]
+    print("nas extra processed", extras_processed)
+    config = {i.split('=')[0]:i.split('=')[1] for i in extras_processed}
+    print("nas config", config)
+    config.update(args)
+
+    dataset_train, dataset_valid = datasets.get_dataset(args['dataset'], train_dir=args['train_data_dir'], valid_data=args['valid_data_dir'])
+    if args['search_for'] == "macro":
+        model = GeneralNetwork(num_classes=args['num_classes'])
+        num_epochs = args['epochs'] or 310
         mutator = None
-    elif args.search_for == "micro":
-        model = MicroNetwork(num_layers=6, out_channels=20, num_nodes=5, dropout_rate=0.1, num_classes=args.num_classes, use_aux_heads=True)
-        num_epochs = args.epochs or 150
+    elif args['search_for'] == "micro":
+        model = MicroNetwork(num_layers=6, out_channels=20, num_nodes=5, dropout_rate=0.1, num_classes=args['num_classes'], use_aux_heads=True)
+        num_epochs = args['epochs'] or 150
         mutator = enas.EnasMutator(model, tanh_constant=1.1, cell_exit_extra_step=True)
     else:
         raise AssertionError
@@ -53,13 +62,13 @@ if __name__ == "__main__":
                                reward_function=reward_accuracy,
                                optimizer=optimizer,
                                callbacks=[LRSchedulerCallback(lr_scheduler), ArchitectureCheckpoint("/mnt/output"), ModelCheckpoint("/mnt/output")],
-                               batch_size=args.batch_size,
+                               batch_size=args['batch_size'],
                                num_epochs=num_epochs,
                                dataset_train=dataset_train,
                                dataset_valid=dataset_valid,
-                               log_frequency=args.log_frequency,
+                               log_frequency=args['log_frequency'],
                                mutator=mutator)
-    if args.visualization:
+    if args['visualization']:
         trainer.enable_visualization()
     trainer.train()
     metrics = [{'name':'accuracy', 'value':trainer.val_model_summary['acc1'].avg}, {'name':'loss', 'value':trainer.val_model_summary['loss'].avg}]
