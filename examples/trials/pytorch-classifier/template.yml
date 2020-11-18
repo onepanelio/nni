@@ -34,8 +34,8 @@ arguments:
     - name: nas-config
       value: |-
         epochs=20
-        batch-size=128
-        search-for=macro
+        batch_size=128
+        search_for=macro
       displayName: Settings for Neural Architecture Search
       visibility: public
       type: textarea.textarea

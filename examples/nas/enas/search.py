@@ -43,12 +43,12 @@ if __name__ == "__main__":
 
     dataset_train, dataset_valid = datasets.get_dataset(args['dataset'], train_dir=args['train_data_dir'], valid_data=args['valid_data_dir'])
     if args['search_for'] == "macro":
-        model = GeneralNetwork(num_classes=args['num_classes'])
-        num_epochs = args['epochs'] or 310
+        model = GeneralNetwork(num_classes=int(args['num_classes']))
+        num_epochs = int(args['epochs']) or 310
         mutator = None
     elif args['search_for'] == "micro":
-        model = MicroNetwork(num_layers=6, out_channels=20, num_nodes=5, dropout_rate=0.1, num_classes=args['num_classes'], use_aux_heads=True)
-        num_epochs = args['epochs'] or 150
+        model = MicroNetwork(num_layers=6, out_channels=20, num_nodes=5, dropout_rate=0.1, num_classes=int(args['num_classes']), use_aux_heads=True)
+        num_epochs = int(args['epochs']) or 150
         mutator = enas.EnasMutator(model, tanh_constant=1.1, cell_exit_extra_step=True)
     else:
         raise AssertionError
@@ -63,7 +63,7 @@ if __name__ == "__main__":
                                reward_function=reward_accuracy,
                                optimizer=optimizer,
                                callbacks=[LRSchedulerCallback(lr_scheduler), ArchitectureCheckpoint("/mnt/output"), ModelCheckpoint("/mnt/output")],
-                               batch_size=args['batch_size'],
+                               batch_size=int(args['batch_size']),
                                num_epochs=num_epochs,
                                dataset_train=dataset_train,
                                dataset_valid=dataset_valid,
