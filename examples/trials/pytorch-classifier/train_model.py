@@ -155,19 +155,19 @@ def get_params():
                         default='/home/savan/Documents/train_data', help="train data directory")
     parser.add_argument("--test_dir", type=str,
                         default='/home/savan/Documents/test_data', help="test data directory")
-    parser.add_argument("--model_type", type=str,
-                        default='alexnet', help="model to train")
-    parser.add_argument('--batch_size', type=int, default=1, metavar='N',
-                        help='input batch size for training (default: 64)')
+    # parser.add_argument("--model_type", type=str,
+    #                     default='alexnet', help="model to train")
+    # parser.add_argument('--batch_size', type=int, default=1, metavar='N',
+    #                     help='input batch size for training (default: 64)')
     parser.add_argument("--batch_num", type=int, default=None)
     parser.add_argument("--num_classes", type=int, default=2, metavar='N',
                         help='number of classes in the dataset')
-    parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
-                        help='learning rate (default: 0.01)')
-    parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
-                        help='SGD momentum (default: 0.5)')
-    parser.add_argument('--epochs', type=int, default=10, metavar='N',
-                        help='number of epochs to train (default: 10)')
+    # parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
+    #                     help='learning rate (default: 0.01)')
+    # parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
+    #                     help='SGD momentum (default: 0.5)')
+    # parser.add_argument('--epochs', type=int, default=10, metavar='N',
+    #                     help='number of epochs to train (default: 10)')
     parser.add_argument('--seed', type=int, default=1, metavar='S',
                         help='random seed (default: 1)')
     parser.add_argument('--no_cuda', action='store_true', default=False,
@@ -182,18 +182,18 @@ def get_params():
 if __name__ == '__main__':
     try:
         params = vars(get_params())
-        # print("Older params:", params)
-        # extras = params['config'].split("\n")
-        # print("extras", extras)
-        # extras_processed = [i.split("#")[0].replace(" ","") for i in extras if i]
-        # print("extra processed", extras_processed)
-        # config = {i.split('=')[0]:i.split('=')[1] for i in extras_processed}
-        # print("config", config)
-        # config.update(params)
-        # config.pop('config')
+        print("Older params:", params)
+        extras = params['config'].split("\n")
+        print("extras", extras)
+        extras_processed = [i.split("#")[0].replace(" ","") for i in extras if i]
+        print("extra processed", extras_processed)
+        config = {i.split('=')[0]:i.split('=')[1] for i in extras_processed}
+        print("config", config)
+        config.update(params)
+        config.pop('config')
         print("Current Parameters:\n")
-        print(params)
-        acc, loss = train(params)
+        print(config)
+        acc, loss = train(config)
         if loss is None or math.isnan(loss):
             loss = 0
         metrics = [
