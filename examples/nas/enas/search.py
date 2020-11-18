@@ -39,6 +39,7 @@ if __name__ == "__main__":
     config = {i.split('=')[0]:i.split('=')[1] for i in extras_processed}
     print("nas config", config)
     config.update(vars(args))
+    args = config
 
     dataset_train, dataset_valid = datasets.get_dataset(args['dataset'], train_dir=args['train_data_dir'], valid_data=args['valid_data_dir'])
     if args['search_for'] == "macro":
