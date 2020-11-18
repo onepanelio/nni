@@ -182,9 +182,13 @@ def get_params():
 if __name__ == '__main__':
     try:
         params = vars(get_params())
+        print("Older params:", params)
         extras = params['config'].split("\n")
+        print("extras", extras)
         extras_processed = [i.split("#")[0].replace(" ","") for i in extras if i]
+        print("extra processed", extras_processed)
         config = {i.split('=')[0]:i.split('=')[1] for i in extras_processed}
+        print("config", config)
         config.update(params)
         config.pop('config')
         print("Current Parameters:\n")
