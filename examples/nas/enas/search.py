@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument("--config", default="batch-size=128 \n search-for=macro \n epochs=30")
     args = parser.parse_args()
 
-    extras = args['config'].split("\n")
+    extras = args.config.split("\n")
     print("nas extras", extras)
     extras_processed = [i.split("#")[0].replace(" ","") for i in extras if i]
     print("nas extra processed", extras_processed)
