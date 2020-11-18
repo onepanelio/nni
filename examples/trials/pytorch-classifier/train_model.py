@@ -197,8 +197,8 @@ if __name__ == '__main__':
         if loss is None or math.isnan(loss):
             loss = 0
         metrics = [
-          {'name': 'accuracy', 'value': acc},
-          {'name': 'loss', 'value': loss},
+          {'name': 'accuracy', 'value': round(acc,2)},
+          {'name': 'loss', 'value': round(loss,2)},
         ]
         
         # Write metrics to `/tmp/sys-metrics.json`

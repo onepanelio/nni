@@ -147,7 +147,7 @@ def train(args):
     best_params = nni.get_best_params()
     print("Best param and score: ", best_params)
     metrics = [
-        {'name': 'accuracy', 'value': float(best_params['score'])},
+        {'name': 'accuracy', 'value': round(float(best_params['score']),2)},
     ]
     with open('/tmp/sys-metrics.json', 'w') as f:
         json.dump(metrics, f)

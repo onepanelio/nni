@@ -72,6 +72,6 @@ if __name__ == "__main__":
     if args['visualization']:
         trainer.enable_visualization()
     trainer.train()
-    metrics = [{'name':'accuracy', 'value':trainer.val_model_summary['acc1'].avg}, {'name':'loss', 'value':trainer.val_model_summary['loss'].avg}]
+    metrics = [{'name':'accuracy', 'value':round(trainer.val_model_summary['acc1'].avg, 2)}, {'name':'loss', 'value':round(trainer.val_model_summary['loss'].avg,2)}]
     with open('/tmp/sys-metrics.json', 'w') as f:
         json.dump(metrics, f)
