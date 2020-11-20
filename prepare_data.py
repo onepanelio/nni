@@ -35,7 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('--test_split', default=20, type=int)
     parser.add_argument('--skip', default=True, type=bool)
     args = parser.parse_args()
-    if not args.skip:
+    if args.skip == "false":
         main(args)
     else:
         os.makedirs("/mnt/output/processed_data")
