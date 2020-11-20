@@ -2,44 +2,60 @@ entrypoint: main
 arguments:
     parameters:
     - name: cvat-annotation-path
-      value: annotation-dump/animals/11052020231652
+      value: annotation-dump/patch_medical/valid
       displayName: Dataset path
       hint: Path to annotated data in default object storage (i.e S3). In CVAT, this parameter will be pre-populated.
       visibility: private
+      
     - name: cvat-output-path
       value: workflow-data/output/nas/nas-model-comparison
       visibility: private
+      
     - name: num-classes
       displayName: Number of classes
       visibility: public
       value: '2'
+      hint: 'Number of classes in a dataset'
+      
     - name: test-split
       displayName: Percentage of images to use for testing
       visibility: public
       value: '20'
+      hint: 'Percentage of data to be used for test set'
+      
+    - name: skip-preprocessing
+      displayName: Whether to skip preprocessing data or not
+      visibility: public
+      value: 'false'
+      hint: 'Specify whether to skip preprocessing or not. Skip preprocessing if your dataset is already in a required format.'
+      
     - name: searchspace-config
       type: textarea.textarea
       displayName: Search space for hyperparameter tuning
       value: |-
-        batch_size_list=16,32,64,128
-        lr_list=0.0001,0.001,0.01,0.1
-        momentum_range=0,1
-        epochs=10
+        batch_size_list=16,32,64,128   # batch sizes for hyperparameter tuner
+        lr_list=0.0001,0.001,0.01,0.1  # learning rates for hyperparameter tuner
+        momentum_range=0,1             # range for momentum for hyperparameter tuner
+        epochs=10                      # epochs to train each model for
+      hint: 'Define parameters for hyperparameter tuning'
+        
     - name: nas-config
       value: |-
-        epochs=20
-        batch_size=128
-        search_for=macro
+        epochs=20                     # epochs to train a model for
+        batch_size=128                # batch size for training
+        search_for=macro              # macro or micro search technique for ENAS
       displayName: Settings for Neural Architecture Search
       visibility: public
+      hint: 'Define parameters for Neural Architecture Search'
+      
       type: textarea.textarea
     - name: fixedparam-config
       value: |-
-        momentum=0.5
-        lr=0.01
-        model_type=alexnet
-        batch_size=16
-        epochs=10
+        momentum=0.5                  # momentum to use for training
+        lr=0.01                       # learning rate for training
+        model_type=alexnet            # model to train (i.e alexnet, googlenet)
+        batch_size=16                 # batch size for training
+        epochs=10                     # epochs to train a model for
       displayName: Settings for model training
       visibility: public
       type: textarea.textarea
@@ -68,70 +84,70 @@ volumeClaimTemplates:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 20Gi
+          storage: 200Gi
   - metadata:
       name: output
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 20Gi
+          storage: 200Gi
   - metadata:
-      name: data2
+      name: hyperparamtuning-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 200Gi
+  - metadata:
+      name: hyperparamtuning-output
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 200Gi
+  - metadata:
+      name: fixedparam-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 200Gi
+  - metadata:
+      name: fixedparam-output
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 200Gi
+  - metadata:
+      name: comparemodel-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 200Gi
+  - metadata:
+      name: comparemodel-output
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
           storage: 20Gi
   - metadata:
-      name: output2
+      name: preprocess-data
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
           storage: 20Gi
   - metadata:
-      name: data3
+      name: preprocess-output
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 20Gi
-  - metadata:
-      name: output3
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 20Gi
-  - metadata:
-      name: data4
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 20Gi
-  - metadata:
-      name: output4
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 20Gi
-  - metadata:
-      name: data5
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 20Gi
-  - metadata:
-      name: output5
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 20Gi
+          storage: 200Gi
 templates:
   - name: main
     dag:
@@ -235,9 +251,9 @@ templates:
         nnictl create --config examples/trials/pytorch-classifier/config.yml --port 8089 --foreground
       workingDir: /mnt
       volumeMounts:
-      - name: data2
+      - name: hyperparamtuning-data
         mountPath: /mnt/data
-      - name: output2
+      - name: hyperparamtuning-output
         mountPath: /mnt/output
     nodeSelector:
       beta.kubernetes.io/instance-type: '{{workflow.parameters.sys-node-pool}}'
@@ -277,9 +293,9 @@ templates:
               --config="{{workflow.parameters.fixedparam-config}}" \
       workingDir: /mnt
       volumeMounts:
-      - name: data3
+      - name: fixedparam-data
         mountPath: /mnt/data
-      - name: output3
+      - name: fixedparam-output
         mountPath: /mnt/output
     nodeSelector:
       beta.kubernetes.io/instance-type: '{{workflow.parameters.sys-node-pool}}'
@@ -326,9 +342,9 @@ templates:
         python3 compare.py
       workingDir: /mnt
       volumeMounts:
-      - name: data4
+      - name: comparemodel-data
         mountPath: /mnt/data
-      - name: output4
+      - name: comparemodel-output
         mountPath: /mnt/output
     nodeSelector:
       beta.kubernetes.io/instance-type: '{{workflow.parameters.sys-node-pool}}'
@@ -358,12 +374,13 @@ templates:
         git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 prepare_data.py --data_dir="/mnt/output/processed_data" \
-                                --test_split="{{workflow.parameters.test-split}}"
+                                --test_split="{{workflow.parameters.test-split}}" \
+                                --skip="{{workflow.parameters.skip-preprocessing}}"
       workingDir: /mnt
       volumeMounts:
-      - name: data5
+      - name: preprocess-data
         mountPath: /mnt/data
-      - name: output5
+      - name: preprocess-output
         mountPath: /mnt/output
     nodeSelector:
       beta.kubernetes.io/instance-type: '{{workflow.parameters.sys-node-pool}}'
