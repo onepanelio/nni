@@ -33,7 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_dir', default='/mnt/data/datasets/processed_data')
     parser.add_argument('--image_dir', default='/mnt/data/datasets/images')
     parser.add_argument('--test_split', default=20, type=int)
-    parser.add_argument('--skip', default=True, type=bool)
+    parser.add_argument('--skip', default="false")
     args = parser.parse_args()
     if args.skip == "false":
         main(args)
