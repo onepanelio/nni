@@ -17,12 +17,6 @@ arguments:
       displayName: Percentage of images to use for testing
       visibility: public
       value: '20'
-    - name: hyperparamtuning-config
-      value: |-
-        epochs=10
-      displayName: Settings for hyperparameter tuning
-      visibility: public
-      type: textarea.textarea
     - name: searchspace-config
       type: textarea.textarea
       displayName: Search space for hyperparameter tuning

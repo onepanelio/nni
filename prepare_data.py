@@ -33,5 +33,11 @@ if __name__ == '__main__':
     parser.add_argument('--data_dir', default='/mnt/data/datasets/processed_data')
     parser.add_argument('--image_dir', default='/mnt/data/datasets/images')
     parser.add_argument('--test_split', default=20, type=int)
+    parser.add_argument('--skip', default=True, type=bool)
     args = parser.parse_args()
-    main(args)
+    if not args.skip:
+        main(args)
+    else:
+        os.makedirs("/mnt/output/processed_data")
+        for imdir in os.listdir("/mnt/data/datasets/"):
+            shutil.move(os.path.join("/mnt/data/datasets", imdir), "/mnt/output/processed_data/")
