@@ -3,6 +3,7 @@ import os
 import shutil
 import argparse
 import random
+import glob
 
 def main(args):
 
@@ -27,6 +28,25 @@ def main(args):
                 shutil.move(os.path.join(args.image_dir, img.attrib['name']), os.path.join(args.data_dir, 'train', lbl, img.attrib['name']))
 
 
+def train_test_split(args):
+
+    for dir in os.listdir('/mnt/data/datasets'):
+        os.makedirs(os.path.join(args.data_dir, 'train', dir))
+        os.makedirs(os.path.join(args.data_dir, 'test', dir))
+        a = glob.glob('/mnt/data/datasets/'+dir+'/*.jpg')
+        a.extend(glob.glob('/mnt/data/datasets/'+dir+'/*.png'))
+        test_len = (len(a) * int(args.test_split) )// 100
+        count = 0
+        for file in a:
+            print(file)
+            img_path = os.path.split(file)[-1]
+            if bool(random.getrandbits(1)) and count <= test_len:
+                shutil.move(file, os.path.join(args.data_dir, 'test', dir, img_path))
+                count += 1
+            else:
+                shutil.move(file, os.path.join(args.data_dir, 'train', dir, img_path))
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--xml_path', default='/mnt/data/datasets/annotations/default.xml')
@@ -38,6 +58,4 @@ if __name__ == '__main__':
     if args.skip == "false":
         main(args)
     else:
-        os.makedirs("/mnt/output/processed_data")
-        for imdir in os.listdir("/mnt/data/datasets/"):
-            shutil.move(os.path.join("/mnt/data/datasets", imdir), "/mnt/output/processed_data/")
+        train_test_split(args)
