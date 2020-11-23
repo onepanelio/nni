@@ -30,21 +30,20 @@ def main(args):
 
 def train_test_split(args):
 
-    for dir in os.listdir('/mnt/data/datasets'):
-        os.makedirs(os.path.join(args.data_dir, 'train', dir))
-        os.makedirs(os.path.join(args.data_dir, 'test', dir))
+    for dirn in os.listdir('/mnt/data/datasets'):
+        os.makedirs(os.path.join(args.data_dir, 'train', dirn))
+        os.makedirs(os.path.join(args.data_dir, 'test', dirn))
         a = glob.glob('/mnt/data/datasets/'+dir+'/*.jpg')
         a.extend(glob.glob('/mnt/data/datasets/'+dir+'/*.png'))
         test_len = (len(a) * int(args.test_split) )// 100
         count = 0
         for file in a:
-            print(file)
             img_path = os.path.split(file)[-1]
             if bool(random.getrandbits(1)) and count <= test_len:
-                shutil.move(file, os.path.join(args.data_dir, 'test', dir, img_path))
+                shutil.move(file, os.path.join(args.data_dir, 'test', dirn, img_path))
                 count += 1
             else:
-                shutil.move(file, os.path.join(args.data_dir, 'train', dir, img_path))
+                shutil.move(file, os.path.join(args.data_dir, 'train', dirn, img_path))
 
 
 if __name__ == '__main__':
@@ -56,6 +55,8 @@ if __name__ == '__main__':
     parser.add_argument('--skip', default="false")
     args = parser.parse_args()
     if args.skip == "false":
+        print("Processing data...")
         main(args)
     else:
+        print("Moving files to appropriate directories...")
         train_test_split(args)
