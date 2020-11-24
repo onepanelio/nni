@@ -2,7 +2,7 @@ entrypoint: main
 arguments:
     parameters:
     - name: cvat-annotation-path
-      value: annotation-dump/patch_medical/valid
+      value: annotation-dump/patch_medical/compressed_valid
       displayName: Dataset path
       hint: Path to annotated data in default object storage (i.e S3). In CVAT, this parameter will be pre-populated.
       visibility: private
@@ -26,7 +26,7 @@ arguments:
     - name: skip-preprocessing
       displayName: Whether to skip preprocessing data or not
       visibility: public
-      value: 'false'
+      value: 'true'
       hint: 'Specify whether to skip preprocessing or not. Skip preprocessing if your dataset is already in a required format.'
       
     - name: searchspace-config
@@ -189,18 +189,20 @@ templates:
         archive:
           none: {}
     container:
-      image: onepanel/nni:0.0.4
+      image: onepanel/nni:1.0.0
       command: [sh,-c]
       args:
       - |
+        mv /mnt/data/datasets/processed_data.zip ./ && \
+        unzip processed_data.zip -d /mnt/data/datasets/ && \
         git clone --single-branch --branch fix/config_param https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 examples/nas/enas/search.py \
               --config="{{workflow.parameters.nas-config}}" \
               --num-classes="{{workflow.parameters.num-classes}}" \
               --dataset="custom_classification" \
-              --train-data-dir="/mnt/data/datasets/processed_data" \
-              --valid-data-dir="/mnt/data/datasets/processed_data"
+              --train-data-dir="/mnt/data/datasets/processed_data/train" \
+              --valid-data-dir="/mnt/data/datasets/processed_data/test"
       workingDir: /mnt
       volumeMounts:
       - name: data
@@ -239,10 +241,12 @@ templates:
         archive:
           none: {}
     container:
-      image: onepanel/nni:0.0.4
+      image: onepanel/nni:1.0.0
       command: [sh,-c]
       args:
       - |
+        mv /mnt/data/datasets/processed_data.zip ./ && \
+        unzip processed_data.zip -d /mnt/data/datasets/ && \
         git clone --single-branch --branch fix/config_param https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 examples/trials/pytorch-classifier/create_yaml.py \
@@ -280,17 +284,20 @@ templates:
         archive:
           none: {}
     container:
-      image: onepanel/nni:0.0.4
+      image: onepanel/nni:1.0.0
       command: [sh,-c]
       args:
       - |
+        mv /mnt/data/datasets/processed_data.zip ./ && \
+        unzip processed_data.zip -d /mnt/data/datasets/ && \
         git clone --single-branch --branch fix/config_param https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 examples/trials/pytorch-classifier/train_model.py \
               --num_classes="{{workflow.parameters.num-classes}}" \
-              --train_dir="/mnt/data/datasets/processed_data" \
-              --test_dir="/mnt/data/datasets/processed_data" \
+              --train_dir="/mnt/data/datasets/processed_data/train" \
+              --test_dir="/mnt/data/datasets/processed_data/test" \
               --config="{{workflow.parameters.fixedparam-config}}" \
+              --log_interval=1
       workingDir: /mnt
       volumeMounts:
       - name: fixedparam-data
@@ -315,10 +322,6 @@ templates:
   - name: compare-models
     inputs:
       artifacts:
-      - name: data
-        path: /mnt/data/datasets/
-        s3:
-          key: '{{workflow.namespace}}/{{workflow.parameters.cvat-annotation-path}}'
       - name: nas-metrics
         path: /tmp/nas-metrics.json
       - name: hyperop-metrics
@@ -333,11 +336,11 @@ templates:
         archive:
           none: {}
     container:
-      image: onepanel/nni:0.0.4
+      image: onepanel/nni:1.0.0
       command: [sh,-c]
       args:
       - |
-        git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
+        git clone --single-branch --branch fix/config_param https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 compare.py
       workingDir: /mnt
@@ -356,6 +359,7 @@ templates:
         path: /mnt/data/datasets/
         s3:
           key: '{{workflow.namespace}}/{{workflow.parameters.cvat-annotation-path}}'
+    
     outputs:
       artifacts:
       - name: model
@@ -369,13 +373,18 @@ templates:
       args:
       - |
         apt-get update && \
-        apt-get install -y gcc g++ git && \
+        apt-get install -y gcc g++ git unzip zip && \
         python3 -m pip install setuptools && \
-        git clone --single-branch --branch dev https://github.com/onepanelio/nni.git && \
+        cd /mnt/data/datasets && \
+        unzip processed_data.zip && \
+        rm -f processed_data.zip && \
+        cd /mnt && \
+        git clone --single-branch --branch fix/config_param https://github.com/onepanelio/nni.git && \
         cd nni/ && \
-        python3 prepare_data.py --data_dir="/mnt/output/processed_data" \
+        python3 prepare_data.py --data_dir="./processed_data" \
                                 --test_split="{{workflow.parameters.test-split}}" \
-                                --skip="{{workflow.parameters.skip-preprocessing}}"
+                                --skip="{{workflow.parameters.skip-preprocessing}}" && \
+        zip -r /mnt/output/processed_data.zip ./processed_data
       workingDir: /mnt
       volumeMounts:
       - name: preprocess-data
