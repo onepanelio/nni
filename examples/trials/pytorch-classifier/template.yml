@@ -335,14 +335,47 @@ templates:
         optional: true
         archive:
           none: {}
-    container:
+    script:
       image: onepanel/nni:1.0.0
-      command: [sh,-c]
-      args:
-      - |
-        git clone --single-branch --branch fix/config_param https://github.com/onepanelio/nni.git && \
-        cd nni/ && \
-        python3 compare.py
+      command: [python3, '-u']
+      source: |
+        import json
+
+        accuracies = {}
+        try:
+            with open('/tmp/nas-metrics.json') as f:
+                nas = json.load(f)
+                print("Metrics for Neural Architecture Search: ", nas)
+            accuracies['nas_acc'] = [float(i['value']) for i in nas if i['name'] == 'accuracy'][0]
+        except RuntimeError as e:
+            print("Error occurred while reading metrics for NAS: ", e)
+
+        try:
+            with open('/tmp/hyperop-metrics.json') as f:
+                hyper = json.load(f)
+                print("Metrics for hyper parameter optimization: ", hyper)
+            accuracies['hyperparam_acc'] = [float(i['value']) for i in hyper if i['name'] == 'accuracy'][0]
+        except RuntimeError as e:
+            print("Error occurred while reading metrics for hyperparameter optimization: ", e)
+        
+        try:
+            with open('/tmp/singlemodel-metrics.json') as f:
+                fm = json.load(f)
+                print("Metrics for model trained with fixed parameters: ", fm)
+            accuracies['fixedparam_acc'] = [float(i['value']) for i in fm if i['name'] == 'accuracy'][0]
+        except RuntimeError as e:
+            print("Error occurred while reading metrics for fixed-param model: ", e)
+        
+        max_acc_name = max(accuracies, key=accuracies.get)
+        print("Maximum accuracy was {} for {}".format(max(accuracies.values()), max_acc_name))
+        
+        metrics = [{'name': mac_acc_name, 'value': round(max(accuracies.values()),2)}]
+        try:
+            with open('/tmp/sys-metrics.json') as f:
+                json.dump(metrics, f)
+        except:
+            pass
+                  
       workingDir: /mnt
       volumeMounts:
       - name: comparemodel-data

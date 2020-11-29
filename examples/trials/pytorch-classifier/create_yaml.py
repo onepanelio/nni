@@ -8,12 +8,20 @@ def main(args):
     data['trial']['command'] = "python3 main.py --num_classes {} --epochs {}".format(args['num_classes'], args['epochs'])
 
     with open(args['output_path'], 'w') as yaml_file:
-        yaml_file.write( yaml.dump(data, default_flow_style=False))
-    mm_list = [int(item) for item in args['momentum_range'].split(',')]
-    lr_list = [float(item) for item in args['lr_list'].split(',')]
-    bs_list = [int(item) for item in args['batch_size_list'].split(',')]
+        yaml_file.write(yaml.dump(data, default_flow_style=False))
+
+    json_data = {}
+    if 'momentum_range' in args:
+        mm_list = [int(item) for item in args['momentum_range'].split(',')]
+        json_data['momentum'] = {"_type":"uniform","_value":mm_list}
+    if 'lr_list' in args:
+        lr_list = [float(item) for item in args['lr_list'].split(',')]
+        json_data['lr'] = {"_type":"choice","_value":lr_list}
+    if 'batch_size_list' in args:
+        bs_list = [int(item) for item in args['batch_size_list'].split(',')]
+        json_data['batch_size'] = {'_type':'choice', '_value':bs_list}
+
     with open(args['output_search_space_path'], 'w') as json_file:
-        json_data = {'batch_size': {'_type':'choice', '_value':bs_list}, 'lr':{"_type":"choice","_value":lr_list} , 'momentum':{"_type":"uniform","_value":mm_list}}
         json.dump(json_data, json_file)
 
 if __name__ == "__main__":
