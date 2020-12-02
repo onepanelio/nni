@@ -60,3 +60,10 @@ if __name__ == '__main__':
     else:
         print("Moving files to appropriate directories...")
         train_test_split(args)
+        # clean up, lost+found directory causes PyTorch to think there are three classes
+        # so, remove it
+        try:
+            shutil.rmtree(os.path.join(args.data_dir, 'train', 'lost+found'))
+            shutil.rmtree(os.path.join(args.data_dir, 'test', 'lost+found'))
+        except:
+            pass
