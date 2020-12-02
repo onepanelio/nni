@@ -30,11 +30,11 @@ def main(args):
 
 def train_test_split(args):
 
-    for dirn in os.listdir('/mnt/data/datasets'):
+    for dirn in os.listdir(args.image_dir):
         os.makedirs(os.path.join(args.data_dir, 'train', dirn))
         os.makedirs(os.path.join(args.data_dir, 'test', dirn))
-        a = glob.glob('/mnt/data/datasets/'+dirn+'/*.jpg')
-        a.extend(glob.glob('/mnt/data/datasets/'+dirn+'/*.png'))
+        a = glob.glob(args.image_dir+'/'+dirn+'/*.jpg')
+        a.extend(glob.glob(args.image_dir+'/'+dirn+'/*.png'))
         test_len = (len(a) * int(args.test_split) )// 100
         count = 0
         for file in a:
