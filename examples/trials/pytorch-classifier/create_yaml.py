@@ -5,7 +5,7 @@ import json
 def main(args):
     stream = open(args['config_path'], 'r')
     data = yaml.load(stream)
-    data['trial']['command'] = "python3 main.py --num_classes {} --epochs {}".format(args['num_classes'], args['epochs'])
+    data['trial']['command'] = "python3 main.py --num_classes {} --epochs {} --model_type {}".format(args['num_classes'], args['epochs'], args['model_type'])
 
     with open(args['output_path'], 'w') as yaml_file:
         yaml_file.write(yaml.dump(data, default_flow_style=False))
