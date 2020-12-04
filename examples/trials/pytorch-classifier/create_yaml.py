@@ -6,6 +6,17 @@ def main(args):
     stream = open(args['config_path'], 'r')
     data = yaml.load(stream)
     data['trial']['command'] = "python3 main.py --num_classes {} --epochs {} --model_type {}".format(args['num_classes'], args['epochs'], args['model_type'])
+    # update config settings
+    if 'max_trial_num' in args:
+        data['maxTrialNum'] = int(args['max_trial_num'])
+    if 'max_exec_duration' in args:
+        data['maxExecDuration'] = args['max_exec_duration']
+    if 'trial_concurrency' in args:
+        data['trialConcurrency'] = int(args['trial_concurrency'])
+    if 'use_annotation' in args:
+        data['useAnnotation'] = args['use_annotation']
+    if 'tuner' in args:
+        data['builtinTunerName'] = args['tuner']
 
     with open(args['output_path'], 'w') as yaml_file:
         yaml_file.write(yaml.dump(data, default_flow_style=False))
