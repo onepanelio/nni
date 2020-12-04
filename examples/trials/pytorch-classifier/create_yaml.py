@@ -16,7 +16,7 @@ def main(args):
     if 'use_annotation' in args:
         data['useAnnotation'] = args['use_annotation']
     if 'tuner' in args:
-        data['builtinTunerName'] = args['tuner']
+        data['tuner']['builtinTunerName'] = args['tuner']
 
     with open(args['output_path'], 'w') as yaml_file:
         yaml_file.write(yaml.dump(data, default_flow_style=False))
