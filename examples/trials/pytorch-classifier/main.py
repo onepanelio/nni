@@ -18,22 +18,6 @@ from torchvision import datasets, transforms
 
 logger = logging.getLogger('pytorch_classifier')
 
-
-# mean = 0.0
-# for images, _ in loader:
-#     batch_samples = images.size(0) 
-#     images = images.view(batch_samples, images.size(1), -1)
-#     mean += images.mean(2).sum(0)
-# mean = mean / len(loader.dataset)
-
-# var = 0.0
-# for images, _ in loader:
-#     batch_samples = images.size(0)
-#     images = images.view(batch_samples, images.size(1), -1)
-#     var += ((images - mean.unsqueeze(1))**2).sum([0,2])
-# std = torch.sqrt(var / (len(loader.dataset)*224*224))
-
-
 def build_model(model_type, num_classes):
     if model_type == "googlenet":
         model = models.googlenet(pretrained=True)
@@ -41,12 +25,36 @@ def build_model(model_type, num_classes):
     elif model_type == "resnet50":
         model = models.resnet50(pretrained=True)
         in_features = 2048
+    elif model_type == "resnet18":
+        model = models.resnet18(pretrained=True)
+        in_features = 512
     elif model_type == "alexnet":
         model = models.alexnet(pretrained=True)
         in_features = 4096
     elif model_type == "vgg19":
-        model = models.alexnet(pretrained=True)
+        model = models.vgg19(pretrained=True)
         in_features = 4096
+    elif model_type == "vgg16":
+        model = models.vgg16(pretrained=True)
+        in_features = 4096
+    elif model_type == "mobilenet_v2":
+        model = models.mobilenet_v2(pretrained=True)
+        model.classifier[1] = nn.Linear(1280, num_classes)
+        return model
+    elif model_type == "inception_v3":
+        model = models.inception_v3(pretrained=True)
+        model.fc = nn.Linear(2048, num_classes)
+        return model
+    elif model_type == "densenet161":
+        model = models.densenet161(pretrained=True) # other variants are 121, 169, 201
+        model.classifier = nn.Linear(2208, num_classes)
+        return model
+    elif model_type == "squeezenet":
+        # squeezenet has diff architecture, terminate here
+        model = models.squeezenet1_0(pretrained=True)
+        model.classifier[1] = nn.Conv2d(512, num_classes, 1)
+        return model
+
     if model_type in ['alexnet', 'vgg19']:
         model.classifier._modules['6'] = nn.Sequential(nn.Linear(in_features, num_classes),
                                         nn.LogSoftmax(dim=1))

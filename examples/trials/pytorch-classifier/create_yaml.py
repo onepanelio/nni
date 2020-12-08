@@ -1,3 +1,4 @@
+# script to generate config yaml file dynamically
 import yaml
 import argparse
 import json
@@ -5,6 +6,7 @@ import json
 def main(args):
     stream = open(args['config_path'], 'r')
     data = yaml.load(stream)
+    # update command based on args
     data['trial']['command'] = "python3 main.py --num_classes {} --epochs {} --model_type {}".format(args['num_classes'], args['epochs'], args['model_type'])
     # update config settings
     if 'max_trial_num' in args:
@@ -21,6 +23,8 @@ def main(args):
     with open(args['output_path'], 'w') as yaml_file:
         yaml_file.write(yaml.dump(data, default_flow_style=False))
 
+    # update search space for hyperparam tuning
+    # script needs to be updated for each new param
     json_data = {}
     if 'momentum_range' in args:
         mm_list = [int(item) for item in args['momentum_range'].split(',')]
