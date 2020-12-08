@@ -92,6 +92,7 @@ class Trainer(BaseTrainer):
         self.batch_size = batch_size
         self.workers = workers
         self.log_frequency = log_frequency
+        # update log dir for Onepanel
         self.log_dir = "/mnt/output/naslogs"
         os.makedirs(self.log_dir, exist_ok=True)
         self.status_writer = open(os.path.join(self.log_dir, "log"), "w")
@@ -144,6 +145,7 @@ class Trainer(BaseTrainer):
             if validate:
                 # validation
                 _logger.info("Epoch %d Validating", epoch + 1)
+                # keep track of metrics so that it can be used later
                 self.val_model_summary = self.validate_one_epoch(epoch)
 
             for callback in self.callbacks:

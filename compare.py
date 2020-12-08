@@ -1,3 +1,5 @@
+# Read sys-metrics files and find the one with the highest accuracy.
+
 import json
 
 accuracies = {}

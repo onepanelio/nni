@@ -6,7 +6,12 @@ import random
 import glob
 
 def main(args):
+    """ CVAT's XML format has xml file that contains annotations and paths to images.
+        The script requires data to be in PyTorch's ImageFolder folder where there is one directory
+        per class.
 
+        This also splits data into train and test set.
+    """
     tree = ET.parse(args.xml_path)
     root = tree.getroot()
 
@@ -14,6 +19,7 @@ def main(args):
     for label in root.iter('label'):
         os.makedirs(os.path.join(args.data_dir, 'train', label.find('name').text))
         os.makedirs(os.path.join(args.data_dir, 'test', label.find('name').text))
+
     images_len = len(list(root.iter('tag')))
     test_len = (images_len * args.test_split )// 100
     count = 0
@@ -22,6 +28,7 @@ def main(args):
         lbl = img.find('tag').attrib['label']
         if lbl:
             if bool(random.getrandbits(1)) and count <= test_len :
+                # randomly put image into test or train dir
                 shutil.move(os.path.join(args.image_dir, img.attrib['name']), os.path.join(args.data_dir, 'test', lbl, img.attrib['name']))
                 count += 1
             else:
@@ -29,7 +36,9 @@ def main(args):
 
 
 def train_test_split(args):
-
+    """
+        If Images are already in ImageFolder format, then just split images into train and test.
+    """
     for dirn in os.listdir(args.image_dir):
         os.makedirs(os.path.join(args.data_dir, 'train', dirn))
         os.makedirs(os.path.join(args.data_dir, 'test', dirn))

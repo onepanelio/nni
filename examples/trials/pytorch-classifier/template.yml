@@ -33,10 +33,13 @@ arguments:
       type: textarea.textarea
       displayName: Search space for hyperparameter tuning
       value: |-
-        batch_size_list=16,32,64,128   # batch sizes for hyperparameter tuner
-        lr_list=0.0001,0.001,0.01,0.1  # learning rates for hyperparameter tuner
-        momentum_range=0,1             # range for momentum for hyperparameter tuner
-        epochs=10                      # epochs to train each model for
+        model_type=alexnet              # any model type supported by torchvision
+        batch_size_list=16,32,64,128    # batch sizes for hyperparameter tuner
+        lr_list=0.0001,0.001,0.01,0.1   # learning rates for hyperparameter tuner
+        momentum_range=0,1              # range for momentum for hyperparameter tuner
+        epochs=10                       # epochs to train each model for
+        tuner=TPE                       # any tuner supprted by NNI
+        max_trial_num=2                 # max number of trials to run
       hint: 'Define parameters for hyperparameter tuning'
         
     - name: nas-config
@@ -189,7 +192,7 @@ templates:
         archive:
           none: {}
     container:
-      image: onepanel/nni:1.0.0
+      image: onepanel/nni:1.0.2
       command: [sh,-c]
       args:
       - |
@@ -241,7 +244,7 @@ templates:
         archive:
           none: {}
     container:
-      image: onepanel/nni:1.0.0
+      image: onepanel/nni:1.0.2
       command: [sh,-c]
       args:
       - |
@@ -284,12 +287,14 @@ templates:
         archive:
           none: {}
     container:
-      image: onepanel/nni:1.0.0
+      image: onepanel/nni:1.0.2
       command: [sh,-c]
       args:
       - |
         mv /mnt/data/datasets/processed_data.zip ./ && \
         unzip processed_data.zip -d /mnt/data/datasets/ && \
+        ls /mnt/data/datasets/ && \
+        ls /mnt/data/datasets/processed_data/train/ && \
         git clone --single-branch --branch fix/config_param https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 examples/trials/pytorch-classifier/train_model.py \
@@ -336,10 +341,15 @@ templates:
         archive:
           none: {}
     script:
-      image: onepanel/nni:1.0.0
+      image: onepanel/nni:1.0.2
       command: [python3, '-u']
       source: |
         import json
+        import os
+        import onepanel.core.api
+        from onepanel.core.api.models.metric import Metric
+        from onepanel.core.api.rest import ApiException
+        from onepanel.core.api.models import Parameter
 
         accuracies = {}
         try:
@@ -368,14 +378,32 @@ templates:
         
         max_acc_name = max(accuracies, key=accuracies.get)
         print("Maximum accuracy was {} for {}".format(max(accuracies.values()), max_acc_name))
+        metrics = [{'name': 'accuracy', 'value': round(max(accuracies.values()),2)}]
+        with open('/var/run/secrets/kubernetes.io/serviceaccount/token') as f:
+            token = f.read()
+
+        # Configure API authorization
+        configuration = onepanel.core.api.Configuration(
+            host = os.getenv('ONEPANEL_API_URL'),
+            api_key = {
+                'authorization': token
+            }
+        )
+        configuration.api_key_prefix['authorization'] = 'Bearer'
         
-        metrics = [{'name': mac_acc_name, 'value': round(max(accuracies.values()),2)}]
-        try:
-            with open('/tmp/sys-metrics.json') as f:
-                json.dump(metrics, f)
-        except:
-            pass
-                  
+        # Call SDK method to save metrics
+        with onepanel.core.api.ApiClient(configuration) as api_client:
+            api_instance = onepanel.core.api.WorkflowServiceApi(api_client)
+            namespace = '{{workflow.namespace}}'
+            uid = '{{workflow.name}}'
+            body = onepanel.core.api.AddWorkflowExecutionsMetricsRequest()
+            body.metrics = metrics
+            try:
+                api_response = api_instance.add_workflow_execution_metrics(namespace, uid, body)
+                print('Metrics added.')
+            except ApiException as e:
+                print("Exception when calling WorkflowServiceApi->add_workflow_execution_metrics: %s\n" % e)
+                    
       workingDir: /mnt
       volumeMounts:
       - name: comparemodel-data
@@ -389,9 +417,9 @@ templates:
     inputs:
       artifacts:
       - name: data
-        path: /mnt/data/datasets/
-        s3:
-          key: '{{workflow.namespace}}/{{workflow.parameters.cvat-annotation-path}}'
+        path: /mnt/data/patch_medical_valid.zip
+        http:
+          url: https://github.com/onepanelio/templates/releases/download/v0.2.0/patch_medical_valid.zip
     
     outputs:
       artifacts:
@@ -408,14 +436,16 @@ templates:
         apt-get update && \
         apt-get install -y gcc g++ git unzip zip && \
         python3 -m pip install setuptools && \
-        cd /mnt/data/datasets && \
-        unzip processed_data.zip && \
-        rm -f processed_data.zip && \
+        ls /mnt/data && \
+        cd /mnt/data/ && \
+        unzip patch_medical_valid.zip && \
+        rm -f patch_medical_valid.zip && \
         cd /mnt && \
         git clone --single-branch --branch fix/config_param https://github.com/onepanelio/nni.git && \
         cd nni/ && \
         python3 prepare_data.py --data_dir="./processed_data" \
                                 --test_split="{{workflow.parameters.test-split}}" \
+                                --image_dir="/mnt/data" \
                                 --skip="{{workflow.parameters.skip-preprocessing}}" && \
         zip -r /mnt/output/processed_data.zip ./processed_data
       workingDir: /mnt
